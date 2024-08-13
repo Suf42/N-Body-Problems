@@ -1,0 +1,199 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage{latexsym,amssymb,enumerate,amsmath,epsfig,amsthm}
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace,color}
+\usepackage{graphics}
+\usepackage{subfig}
+\usepackage[hidelinks]{hyperref}
+\usepackage{float}
+\usepackage{mathtools}
+\usepackage{subcaption}
+\usepackage{graphicx}
+\usepackage{indentfirst}
+\setlength\parindent{24pt}
+\usepackage{tabularx}
+
+\title{A Comparative Study of the Performance of Different Numerical Approximations for N-body Problems}
+\author{Mohammad-Sufian}
+\date{06 December 2023}
+
+\begin{document}
+\thispagestyle{plain}
+\maketitle
+
+\section{Abstract}
+
+The N-body problem is a system of N second-order differential equations that cannot be expressed as a closed-form solution to date. This report weighs the options of using various numerical approximation methods to solve these problems, which are valuable in modelling the early structuring of our universe and the formation of star clusters in astrodynamics. A comparison of methods is made on the basis of accuracy, (computational) efficiency, and stability, which are usually the three quantities of interest in numerical approximation. Preliminary findings from the problem investigation show that even a simple method like symplectic Euler can provide satisfactory simulation results for some elementary N-body problems with acceptable trade-offs in terms of accuracy and computational efficiency.
+
+\section{Introduction}
+
+When Sir Isaac Newton published his Law of Universal Gravitation in the $17 ^{th}$ century, he used it to adequately describe Kepler's laws of planetary motion. With this knowledge, the problem of locating the positions of two isolated bodies orbiting around one another at any point in time was solved. Naturally, Newton wondered if he could extend this problem to N arbitrary bodies mutually orbiting one another, which gave rise to what is referred to as the N-body problem. Formally, the N-body problem is defined in equation (1), where ${r} _{i}$ is the position vector of the $i ^{th}$ body:
+
+\begin{equation}
+    \label{ODE}
+    a_{i} \left ( t \right ) = {\frac {d^{2}\mathbf {r} _{i}(t)}{dt^{2}}} = G\sum _{\genfrac{}{}{0pt}{}{k=1}{k\neq i}}^{N}{\frac {m_{k}\left(\mathbf {r} _{k}(t)-\mathbf {r} _{i}(t)\right)}{\left|\mathbf {r} _{k}(t)-\mathbf {r} _{i}(t)\right|^{3}}}
+\end{equation}
+
+The short answer is no. The best we can do is numerically approximate the position of a body in time, which will always come with accuracy trade-offs. There are thousands of choices for numerical approximation techniques in numerical analysis that can be used to tackle the N-body problem. In this study, four methods are chosen, which will highlight the strengths and weaknesses of different methods in terms of accuracy, efficiency, and stability. The study aims to identify the importance of each of these metrics by using software implementations of chosen methods and analysing the simulation results and error plots. The next section in this report will go into detail about these methods and the study setup specifics. This is then followed by a numerical examples section with the results, discussion and concluding remarks.
+
+\section{Research Method}
+
+The study consists of 4 major components.
+
+\subsection{The Numerical Methods}
+
+The numerical methods chosen for the study can be summarised in the following table: \\
+
+\begin{tabularx}{0.92\textwidth} { 
+  | >{\centering\arraybackslash}X 
+  | >{\centering\arraybackslash}X 
+  | >{\centering\arraybackslash}X | }
+ \hline
+ \textbf{Method} & \textbf{Order} & \textbf{Global Error} \\
+ \hline
+ Explicit Midpoint Method  & Second  & O($h ^{2}$)  \\
+ \hline
+ Fourth Order Runge-Kutta  & Fourth & O($h ^{4}$)  \\
+ \hline
+ Symplectic Euler  & First  & O($h$)  \\
+ \hline
+ Velocity Verelt  & Second  & O($h ^{2}$)  \\
+ \hline
+\end{tabularx} \\ \\
+
+One important distinction to make here is that Symplectic Euler and Velocity Verlet are symplectic methods that bound energy errors so that they don't accumulate over time during simulations. It can be shown in the numerical examples section that this symplectic property can play an important part in the accuracy of simulation results.
+
+\subsection{The Test Cases}
+
+While the general N-body body problem has no known closed form solution, there are a subset of well-known restricted initial value N-body problems for which the solutions are known. We will use two of them in our numerical examples section, namely the figure-8 orbit and a version of Euler's collinear solution.
+
+\subsection{Running the Simulations}
+
+The simulations are coded in Python with heavy reliance on the NumPy package to provide vectorisation and broadcasting of N-length arrays for optimised element-wise operations.
+
+\subsection{Comparing Results}
+
+In order to create a fair comparison for the test metrics across each numerical method, we define the Hamiltonian (total energy in Hamiltonian systems) in equation (2), where $p_{i}$ is the momentum of the $i^{th}$ body and $q$ is the position vector:
+
+\begin{equation}
+    \label{Hamiltonian}
+    {\displaystyle H=T+U=\sum _{i=1}^{N}{\frac {\left\|\mathbf {p} _{i}\right\|^{2}}{2m_{i}}} - \sum _{1\leq i<j\leq N}{\frac {Gm_{i}m_{j}}{\left\|\mathbf {q} _{j}-\mathbf {q} _{i}\right\|}}}
+\end{equation}
+
+For a fair comparison, we define the log of the fractional Hamiltonian drift in equation (3), where $\Delta E$ is the change in Hamiltonian at a particular time and $E$ is the initial Hamiltonian. Now the error is relative.
+
+\begin{equation}
+    \label{fractional energy error vs time}
+    \log_{10} \left ( {\frac {\Delta E}{E}} \right )
+\end{equation}
+
+In the numerical results, we plot the log of the fractional Hamiltonian drift against simulation time.
+
+\section{Numerical Examples}
+
+Referring to the details in the previous section, the numerical examples are as follows:
+
+\begin{figure}[H]
+  \centering
+  \subfloat[][]{\includegraphics[width=.375\textwidth]{F81m.png}}\quad
+  \subfloat[][]{\includegraphics[width=.375\textwidth]{F82m.png}}\\
+  \subfloat[][]{\includegraphics[width=.375\textwidth]{F83m.png}}\quad
+  \subfloat[][]{\includegraphics[width=.375\textwidth]{F84m.png}}
+  \caption{Test Case 1: Figure-8 Orbit Simulations}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \subfloat[][]{\includegraphics[width=.375\textwidth]{F81e.png}}\quad
+  \subfloat[][]{\includegraphics[width=.375\textwidth]{F82e.png}}\\
+  \subfloat[][]{\includegraphics[width=.375\textwidth]{F83e.png}}\quad
+  \subfloat[][]{\includegraphics[width=.375\textwidth]{F84e.png}}
+  \caption{Test Case 1: Figure-8 Orbit Error Plots}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \subfloat[][]{\includegraphics[width=.375\textwidth]{CC1m.png}}\quad
+  \subfloat[][]{\includegraphics[width=.375\textwidth]{CC2m.png}}\\
+  \subfloat[][]{\includegraphics[width=.375\textwidth]{CC3m.png}}\quad
+  \subfloat[][]{\includegraphics[width=.375\textwidth]{CC4m.png}}
+  \caption{Test Case 2: Chaotic Collinear Configuration Simulations}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \subfloat[][]{\includegraphics[width=.375\textwidth]{CC1e.png}}\quad
+  \subfloat[][]{\includegraphics[width=.375\textwidth]{CC2e.png}}\\
+  \subfloat[][]{\includegraphics[width=.375\textwidth]{CC3e.png}}\quad
+  \subfloat[][]{\includegraphics[width=.375\textwidth]{CC4e.png}}
+  \caption{Test Case 2: Chaotic Collinear Configuration  Error Plots}
+\end{figure}
+
+\section{Discussion}
+
+\subsection{Accuracy and Stability}
+
+First, consider a more stable case of the figure 8-orbit. When we place three bodies on a figure-8 as far away from each other as mutually possible with a certain initial speed, we expect that the bodies will perpetually orbit one another in a figure-8 shape. As we move across figures 1.a through 1.d, we can start to see a more pronounced figure-8 pattern. This can be explained by the energy plots given in figures 2.a through 2.d. The energy drift for symplectic Euler and Velocity Verlet methods is bounded in an interval, which can preserve the long-term geometry of the figure-8 orbit and hence prevent orbital decay over time, as we can observe from figures 1.c and 1.d. On the other hand, the Explicit Midpoint Method and Fourth Order Runge-Kutta seem to drift increasingly without bound (for our simulation time). If the simulation time were any longer, we might expect even more orbital decay and eventually have bodies drift off. Just from this test case alone, we can conclude that symplecticness is an important factor to consider when choosing to model N-body problems if we want to preserve the long-term geometry of orbits.
+
+\noindent \begin{minipage}{0.375\textwidth}
+    \begin{figure}[H]
+    \includegraphics[width=\linewidth]{modelm.png}
+    \caption{Stable Collinear Configuration}
+    \end{figure}
+\end{minipage}
+\begin{minipage}{0.625\textwidth}\raggedleft
+We can observe another test case of a chaotic collinear configuration in figures 3 and 4. This test case is a bit different compared to test case 1. The initial parameters were purposefully tweaked by the same amount to add chaos to the N-body system. Observe the original stable solution in figure 5. We now test the stability of different methods with small perturbations in the initial parameters. There are many criteria to define unstable orbits. In this test case, let's assume that an unstable orbit refers to a high chance of collision between two bodies or if a body is ejected from a system.
+\end{minipage} \\
+
+In figure 3.a, we can see stars 1 and 3 viciously spiralling towards one another as the simulation progresses. This is usually an indicator of binary stars as they lose energy and approach each other before collision. This probably explains the sharp loss in energy in figure 4.a at around t = 9 seconds. This puts the Explicit Midpoint Method in a bad spot in terms of stability for this test case. While we observe the spiralling effect in the remaining test cases too, the effect is less severe (compare the shapes of 4.a and 4.b, especially the heights where the energy loss ramps up). They do, however, eject bodies from the system eventually, like when we see star 3 leaving the system in 3.b. However, Fourth Order Runge-Kutta is way quicker to eject a body than the symplectic methods to achieve stability quicker.
+
+\subsection{Efficiency}
+
+The computation time of the methods can be summarised in the following table: \\
+
+\begin{tabularx}{0.92\textwidth} { 
+  | >{\centering\arraybackslash}X 
+  | >{\centering\arraybackslash}X 
+  | >{\centering\arraybackslash}X | }
+ \hline
+ \textbf{Method} & \textbf{Mean Time Per Iteration} & \textbf{Asymptotic Bound} \\
+ \hline
+ Explicit Midpoint Method  & 0.2332  & O($N ^{2}$)  \\
+ \hline
+ Fourth Order Runge-Kutta  & 0.6930 & O($N ^{2}$)  \\
+ \hline
+ Symplectic Euler  & 0.1548  & O($N ^{2}$)  \\
+ \hline
+ Velocity Verelt  & 0.2592  & O($N ^{2}$)  \\
+ \hline
+\end{tabularx} \\ \\
+
+The mean time per iteration quite intuitively increases with the order of the method. O($N ^{2}$) is the best achievable bound by brute force since we require information from N-1 bodies to update each of the N bodies.
+
+\section{Conclusion}
+
+In short, symplecticness is an important property when choosing numerical methods to approximate Hamiltonian systems for preserving long-term geometry. Symplectic Euler provided the fastest computation time and outstanding accuracy at the cost of stability and works well if stable orbit can be ensured. With some loss in efficiency, Velocity Verlet has the promise of being the most accurate and stable numerical method for approximating a large class of N-body problems in the event of instability.
+
+\subsection{Limitations}
+
+O($N ^{2}$) is not an acceptable time complexity when N gets large. The Barnes-Hut algorithm provides an O($N \log{N}$) solution compared to the O($N ^{2}$) direct calculation between all pairs of N bodies.
+
+\subsection{Future Work}
+
+There is great potential for using implicit update methods and variable time steps to improve numerical accuracy.
+
+\begin{thebibliography}{10}
+\bibitem{Euler's collinear solution}{\sc K.~K.~G. Myrdal}, {\em SOME THEORETICAL AND NUMERICAL ASPECTS OF THE N-BODY PROBLEM}, Faculty of Science, Centre for Mathematical Sciences, Lund University, 2013. \url{https://lup.lub.lu.se/luur/download?func=downloadFile&recordOId=4780668&fileOId=4780676}
+\bibitem{Conservative Integrator}{\sc O. Kotovych, \& J.~C. Bowman}, {\em An Exactly Conservative Integrator for the n-Body Problem}, Department of Mathematical and Statistical Sciences, University of Alberta, 2002. \url{https://www.math.ualberta.ca/~bowman/publications/nbody.pdf}
+\bibitem{three-body problem}{\sc Z.~E. Musielak, \& B. Quarles}, {\em The three-body problem}, Department of Physics, The University of Texas at Arlington, 2015. \url{https://arxiv.org/pdf/1508.02312.pdf}
+\bibitem{Figure-8}{\sc F.~P. Ramos}, {\em Stable Closed Orbits – Figure-8
+}, School of Mathematics, University of Edinburgh, 2019. \url{https://www.maths.ed.ac.uk/~ateckent/vacation_reports/Report_Faustino.pdf}
+\bibitem{RK4}{\sc C.~J. Voesenek}, {\em Implementing a Fourth Order Runge-Kutta Method for Orbit Simulation
+}, Rochester Institute of Technology, 2008. \url{http://spiff.rit.edu/richmond/nbody/OrbitRungeKutta4.pdf}
+\bibitem{Stromer-Verlet}{\sc E. Hairer}, {\em Symplectic integrators
+}, Technical University of Munich, 2010. \url{https://www.unige.ch/~hairer/poly_geoint/week2.pdf}
+\bibitem{Symplecticness}{\sc D.~M. Hernandez, \& E. Bertschinger}, {\em Symplectic integration for the collisional gravitational N-body problem
+}, Royal Astronomical Society, 2015. \url{https://doi.org/10.1093/mnras/stv1439}
+\end{thebibliography}
+
+\end{document}
